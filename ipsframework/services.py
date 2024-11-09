@@ -1925,6 +1925,11 @@ class ServicesProxy:
     def create_sub_workflow(self, sub_name, config_file, override=None, input_dir=None):
         """Create sub-workflow
 
+        :param sub_name: name of sub-workflow
+        :param config_file: configuration file for sub-workflow
+        :param override: dictionary of configuration overrides
+        :param input_dir: input directory for sub-workflow components
+        :returns: tuple of simulation name, init component, driver component
         """
 
         if override is None:
