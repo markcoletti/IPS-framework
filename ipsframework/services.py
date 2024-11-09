@@ -355,11 +355,16 @@ class ServicesProxy:
         return self.finished_calls.pop(msg_id, None)
 
     def _invoke_service(self, component_id, method_name, *args, **keywords):
-        r"""
+        """ Call a method for the given component
+
         Create and place in the ``self.fwk_in_q`` a new
-        :py:meth:`messages.ServiceRequestMessage` for service
-        *method_name* with *\*args* arguments on behalf of component
-        *component_id*.  Return message id.
+        :py:meth:`messages.ServiceRequestMessage` for service `method_name`
+        with `args` arguments on behalf of component `component_id`.  Return
+        message id.
+
+        :param component_id: Component ID of requested component
+        :param method_name: component method to call, e.g. ``init`` or ``step``
+        :return: message id
         """
         self.debug('_invoke_service(): %s  %s', method_name, str(args[0:]))
         new_msg = messages.ServiceRequestMessage(self.component_ref.component_id,
@@ -1927,62 +1932,88 @@ class ServicesProxy:
 
         :param sub_name: name of sub-workflow
         :param config_file: configuration file for sub-workflow
-        :param override: dictionary of configuration overrides
+        :param override: dictionary of configuration overrides; keys are component names
+            and the items are attribute/key values associated with that
+            component.
         :param input_dir: input directory for sub-workflow components
         :returns: tuple of simulation name, init component, driver component
         """
-
+        # TODO Unclear on what override is
         if override is None:
             override = {}
 
+        # So subflows have names and they must be unique.
+        # TODO how is self.sub_flows set?
         if sub_name in self.sub_flows:
             self.error("Duplicate sub flow name")
             raise Exception("Duplicate sub flow name")
 
+        # TODO We keep track of the number of subflows.  Why?
         self.subflow_count += 1
+
+        # TODO We create *two* ConfigObjs from the *same* config file.  Presumably
+        # to do a delta between the two? Why do this?
         try:
             sub_conf_new = ConfigObj(infile=config_file, interpolation='template', file_error=True)
             sub_conf_old = ConfigObj(infile=config_file, interpolation='template', file_error=True)
         except Exception:
             self.exception("Error accessing sub-workflow config file %s", config_file)
             raise
+
         # Update undefined sub workflow configuration entries using top level configuration
         # only applicable to non-component entries (ones with non-dictionary values)
         for (k, v) in self.sim_conf.items():
             if k not in sub_conf_new and not isinstance(v, dict):
                 sub_conf_new[k] = v
 
+        # TODO Where is self.sim_name set?  What is the significance of
+        # SIM_NAME and SIM_ROOT?
         sub_conf_new['SIM_NAME'] = self.sim_name + "::" + sub_name
         sub_conf_new['SIM_ROOT'] = os.path.join(os.getcwd(), sub_name)
         # sub_conf_new['SIM_ROOT'] = os.path.join(os.getcwd(), 'sub_workflow_%d' % self.subflow_count)
         # Update INPUT_DIR for components to current working dir (super simulation working dir)
         ports = sub_conf_new['PORTS']['NAMES'].split()
-        comps = [sub_conf_new['PORTS'][p]['IMPLEMENTATION'] for p in ports]
-        for c in comps:
+
+        # This is the set of components in the subflow as dictated in the
+        # PORTS section.  Each subsection will have an IMPLEMENTATION value
+        # that refers to a component in the subflow.
+        components = [sub_conf_new['PORTS'][p]['IMPLEMENTATION'] for p in ports]
+
+        # Associate the corresponding INPUT_DIR, which is the working directory
+        # for the given port. If the user specified an `input_dir` in this call,
+        # then prefer to use that, otherwise use any INPUT_DIR specified by
+        # the port in the configuration file.
+        for c in components:
             if not c:
                 continue
             if input_dir is None:
                 sub_conf_new[c]['INPUT_DIR'] = os.path.join(os.getcwd(), c)
             else:
                 sub_conf_new[c]['INPUT_DIR'] = os.path.join(os.getcwd(), input_dir)
-            try:
+
+            # Handle any overrides for the component
+            try: # FIXME this cold be refactored to not use try/except
                 override_vals = override[c]
             except KeyError:
                 pass
             else:
                 for (k, v) in override_vals.items():
                     sub_conf_new[c][k] = v
-        toplevel_override = set(override.keys()) - set(comps)
+
+        # Handle any overrides for the top level configuration
+        toplevel_override = set(override.keys()) - set(components)
         for param in toplevel_override:
             sub_conf_new[param] = override[param]
 
+        # TODO Why do you overwrite the config file?
         sub_conf_new.filename = os.path.basename(config_file)
         sub_conf_new.write()
-        try:
+        try: # FIXME, if you're going to catch an exception, you should handle it
             (sim_name, init_comp, driver_comp) = self._create_simulation(os.path.abspath(sub_conf_new.filename),
                                                                          {}, sub_workflow=True)
         except Exception:
             raise
+
         self.sub_flows[sub_name] = (sub_conf_new, sub_conf_old, init_comp, driver_comp)
         self._send_monitor_event('IPS_CREATE_SUB_WORKFLOW', 'workflow_name = %s' % sub_name)
         return (sim_name, init_comp, driver_comp)
@@ -1992,6 +2023,12 @@ class ServicesProxy:
         return self._create_simulation(config_file, override, sub_workflow=False)[0]
 
     def _create_simulation(self, config_file, override, sub_workflow=False):
+        """
+        :param config_file: configuration file for simulation
+        :param override: dict of configuration file overrides
+        :param sub_workflow: boolean indicating if this is a sub-workflow
+        :returns: tuple of simulation name, init component, driver component
+        """
         try:
             msg_id = self._invoke_service(self.fwk.component_id,
                                           'create_simulation', config_file, override, sub_workflow)
