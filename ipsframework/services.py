@@ -378,20 +378,28 @@ class ServicesProxy:
 
     def _get_service_response(self, msg_id, block=True):
         """
-        Return response from message *msg_id*.  Calls
-        :py:meth:`ServicesProxy._wait_msg_response` with *msg_id* and *block*.  If response
-        is not present, ``None`` is returned, otherwise the response is passed
-        on to the component.  If the status of the response is failure
-        (``Message.FAILURE``), then the exception body is raised.
+        Return response from message `msg_id`.  Calls
+        :py:meth:`ServicesProxy._wait_msg_response` with `msg_id` and
+        `block`.  If response is not present, `None` is returned, otherwise
+        the response is passed on to the component.  If the status of the
+        response is failure (`Message.FAILURE`), then the exception body is
+        raised.
+
+        :param msg_id: message id
+        :param block: Boolean flag. If ``True``, block waiting for one or more
+            responses to arrive.
+        :return: response arguments
         """
         self.debug('_get_service_response(%s)', str(msg_id))
         response = self._wait_msg_response(msg_id, block)
         self.debug('_get_service_response(%s), response = %s', str(msg_id), str(response))
+
         if response is None:
             return None
         if response.status == messages.Message.FAILURE:
             self.debug('###### Raising %s', str(response.args[0]))
             raise response.args[0]
+
         if len(response.args) > 1:
             return response.args
         else:
@@ -2031,7 +2039,8 @@ class ServicesProxy:
         """
         try:
             msg_id = self._invoke_service(self.fwk.component_id,
-                                          'create_simulation', config_file, override, sub_workflow)
+                                          'create_simulation',
+                                          config_file, override, sub_workflow)
             self.debug('create_simulation() msg_id = %s', msg_id)
             (sim_name, init_comp, driver_comp) = self._get_service_response(msg_id, block=True)
             self.debug('Created simulation %s', sim_name)
