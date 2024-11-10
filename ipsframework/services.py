@@ -1956,11 +1956,14 @@ class ServicesProxy:
             self.error("Duplicate sub flow name")
             raise Exception("Duplicate sub flow name")
 
-        # TODO We keep track of the number of subflows.  Why?
+        # TODO We keep track of the number of subflows.  Why?  Also, this is
+        # not used anywhere.  Moreover, there is no mechanism for decrementing
+        # this count when a subflow finishes.
         self.subflow_count += 1
 
         # TODO We create *two* ConfigObjs from the *same* config file.  Presumably
-        # to do a delta between the two? Why do this?
+        # to do a delta between the two? Why do this?  Also, clone the first
+        # instead of reading it again.
         try:
             sub_conf_new = ConfigObj(infile=config_file, interpolation='template', file_error=True)
             sub_conf_old = ConfigObj(infile=config_file, interpolation='template', file_error=True)
