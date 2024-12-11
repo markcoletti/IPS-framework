@@ -26,5 +26,6 @@ class ensemble_driver(Component):
         {‘A’: 2, ‘B’: 5.82, ‘C’: ‘baz’},
         {‘A’: 4, ‘B’: 0.1, ‘C’: ‘quux’}]
 
-        # spins up N tasks, in this case 2
+        # spins up N tasks, in this case 3, each with a different set of
+        # variable values
         self.services.run_ensemble(component, ensemble_variables)
