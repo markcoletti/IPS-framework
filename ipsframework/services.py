@@ -2062,8 +2062,8 @@ class ServicesProxy:
                                        'B': [2.34, 5.82, 0.1],
                                        'C': ['bar', 'baz', 'quux']},
                             'another_sim': {'D': [7, 5],
-                                      'B': [0.775, 0.080],
-                                      'F': ['xyzzy', 'plud']}}
+                                            'B': [0.775, 0.080],
+                                            'F': ['xyzzy', 'plud']}}
 
         That is, the keys are the simulation names and the values are dicts
         mapping parameter to a set of values.  Ensembles will be spun
@@ -2072,12 +2072,35 @@ class ServicesProxy:
         being set to 3, 2.34, 'bar' for one of the simulation instances,
         respectively.
 
+        The ensembles will run under `run_dir` within a subdirectory
+        uniquely named for each.  The subdirectory will contain an IPS
+        config file created from `template` with `?` variables replaced
+        with the values from `variables`.
+
         :param template: configuration template file
         :param variables: a dict of variables to pass to the ensemble runs
         :param run_dir: in which to run the ensembles
+        :returns: a dict mapping created subdirs to simulation names and their
+            parameters
         """
         self.debug(f'In run_ensemble')
         print(f'In run_ensemble')
+
+        template_config = ConfigObj(template)
+
+        # Track the simulation names and their parameters to their respective
+        # subdirectory in this dict.  That way the user can find the subdir
+        # that corresponds to a specific simulation and set of parameters.
+        # Alternatively, they can grind through the subdirs and look at the
+        # instantiated templates there.
+        mapping = {}
+
+        # For each simulation
+        for simulation in variables.keys():
+            pass
+
+
+        return mapping
 
 
 class TaskPool:
