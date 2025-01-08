@@ -2053,6 +2053,33 @@ class ServicesProxy:
         return (sim_name, init_comp, driver_comp)
 
 
+    def run_ensemble(self, template, variables, run_dir):
+        """ Run ensemble of simulations given the template and variables.
+
+        `variables` is a nested dict that looks like this:
+
+                variables = {'a_sim': {'A': [3, 2, 4],
+                                       'B': [2.34, 5.82, 0.1],
+                                       'C': ['bar', 'baz', 'quux']},
+                            'another_sim': {'D': [7, 5],
+                                      'B': [0.775, 0.080],
+                                      'F': ['xyzzy', 'plud']}}
+
+        That is, the keys are the simulation names and the values are dicts
+        mapping parameter to a set of values.  Ensembles will be spun
+        up for each simulation for each combination of parameters.  E.g.,
+        `a_sim` will be run three times with the parameters of A, B, and C
+        being set to 3, 2.34, 'bar' for one of the simulation instances,
+        respectively.
+
+        :param template: configuration template file
+        :param variables: a dict of variables to pass to the ensemble runs
+        :param run_dir: in which to run the ensembles
+        """
+        self.debug(f'In run_ensemble')
+        print(f'In run_ensemble')
+
+
 class TaskPool:
     """
     Class to contain and manage a pool of tasks.

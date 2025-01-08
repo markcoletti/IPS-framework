@@ -51,7 +51,7 @@ class ensemble_driver(Component):
 
         # Spins up N tasks, in this case 5 (3 for a_sim and 2 for blue),
         # each with a different set of variable values.
-        # self.services.run_ensemble(template, variables, run_dir)
+        self.services.run_ensemble(template, variables, run_dir)
 
 
     def finalize(self, timeStamp=0.0):
