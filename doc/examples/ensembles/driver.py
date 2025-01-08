@@ -33,25 +33,32 @@ class ensemble_driver(Component):
         print(f'Using template {template}')
 
         # Specifies different sets of variable values for concurrent ensemble
-        # runs for two different components, 'a_sim' and 'another_sim',
-        # that correspond to two different coupled simulations.  We chose two
-        # components to demonstrate that the same variable, in this case 'B',
-        # can have different values for different components. Moreover,
-        # this example shows that the different components needn't have the
-        # same number of variable values, but those within each component
-        # there should be the same number.  E.g., 'a_sim' has 3 values for
-        # 'A', 'B', and 'C', while 'another_sim' has 2 values for 'D', 'B', and 'F'.
-
-        variables = {'a_sim': {'A': [3, 2, 4],
-                               'B': [2.34, 5.82, 0.1],
-                               'C': ['bar', 'baz', 'quux']},
-                     'another_sim': {'D': [7, 5],
-                                     'B': [0.775, 0.080],
-                                     'F': ['xyzzy', 'plud']}}
+        # runs for two different components, 'A_SIM_COMP' and
+        # 'ANOTHER_SIM_COMP', that correspond to two different coupled
+        # simulations.  We chose two components to demonstrate that the same
+        # variable, in this case 'B', can have different values for different
+        # components. Moreover, this example shows that the different
+        # components needn't have the same number of variable values,
+        # but those within each component there should be the same number.
+        # E.g., 'A_SIM_COMP' has 3 values for 'A', 'B', and 'C', while
+        # 'ANOTHER_SIM_COMP' has 2 values for 'D', 'B', and 'F'.
+        # 'A_SIM_COMP' and 'ANOTHER_SIM_COMP' are the names of the config
+        # sections in the template file so we know where to look for
+        # variable substitutions.
+        variables = {'A_SIM_COMP': {'A': [3, 2, 4],
+                                    'B': [2.34, 5.82, 0.1],
+                                    'C': ['bar', 'baz', 'quux']},
+                     'ANOTHER_SIM_COMP': {'D': [7, 5],
+                                          'B': [0.775, 0.080],
+                                          'F': ['xyzzy', 'plud']}}
 
         # Spins up N tasks, in this case 5 (3 for a_sim and 2 for blue),
-        # each with a different set of variable values.
-        self.services.run_ensemble(template, variables, run_dir)
+        # each with a different set of variable values. `mapping` is a dict
+        # that maps the specific simulation to a given run directory so that
+        # the user can easily find the output for a specific run.
+        mapping = self.services.run_ensemble(template, variables, run_dir)
+
+        print(f'Mapping of dirs to parameters: {mapping!s}')
 
 
     def finalize(self, timeStamp=0.0):
