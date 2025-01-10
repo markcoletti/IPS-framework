@@ -5,8 +5,7 @@
     Please note that run_ensemble can be run from any IPS component, not
     just a driver. The driver is used here for simplicity.
 """
-import os
-from timeit import template
+from pathlib import Path
 
 from ipsframework import Component
 
@@ -26,11 +25,16 @@ class ensemble_driver(Component):
         # ENSEMBLE_DIR is an arbitrary variable denoting where we want to run
         # all the ensembles.  You don't have to use ENSEMBLE_DIR. You can
         # even hardcode the path here.  Whatever.
-        run_dir = self.services.get_config_param('ENSEMBLE_DIR')
+        run_dir = Path(self.services.get_config_param('ENSEMBLE_DIR'))
         print(f'Running ensemble in {run_dir}')
 
         template = self.config['TEMPLATE']
         print(f'Using template {template}')
+
+        # PLATFORM_CONFIG_FILE is a variable that points to the platform
+        # config file used by the ensembles.  This could be the same
+        # platform config file used for this driver, but it doesn't have to be.
+        platform_config = self.config['PLATFORM_CONFIG_FILE']
 
         # Specifies different sets of variable values for concurrent ensemble
         # runs for two different components, 'A_SIM_COMP' and
@@ -48,15 +52,18 @@ class ensemble_driver(Component):
         variables = {'A_SIM_COMP': {'A': [3, 2, 4],
                                     'B': [2.34, 5.82, 0.1],
                                     'C': ['bar', 'baz', 'quux']},
-                     'ANOTHER_SIM_COMP': {'D': [7, 5],
-                                          'B': [0.775, 0.080],
-                                          'F': ['xyzzy', 'plud']}}
+                     'ANOTHER_SIM_COMP': {'D': [7, 5, 9],
+                                          'B': [0.775, 0.080, 29.2],
+                                          'F': ['xyzzy', 'plud', 'thud']}}
 
         # Spins up N tasks, in this case 5 (3 for a_sim and 2 for blue),
         # each with a different set of variable values. `mapping` is a dict
         # that maps the specific simulation to a given run directory so that
         # the user can easily find the output for a specific run.
-        mapping = self.services.run_ensemble(template, variables, run_dir)
+        mapping = self.services.run_ensemble(template,
+                                             variables,
+                                             run_dir,
+                                             platform_config)
 
         print(f'Mapping of dirs to parameters: {mapping!s}')
 

@@ -2053,24 +2053,25 @@ class ServicesProxy:
         return (sim_name, init_comp, driver_comp)
 
 
-    def run_ensemble(self, template, variables, run_dir):
+    def run_ensemble(self, template, variables, run_dir, platform_config):
         """ Run ensemble of simulations given the template and variables.
 
         `variables` is a nested dict that looks like this:
 
-                variables = {'a_sim': {'A': [3, 2, 4],
-                                       'B': [2.34, 5.82, 0.1],
-                                       'C': ['bar', 'baz', 'quux']},
-                            'another_sim': {'D': [7, 5],
-                                            'B': [0.775, 0.080],
-                                            'F': ['xyzzy', 'plud']}}
+                variables = {'A_SIM_COMP': {'A': [3, 2, 4],
+                                            'B': [2.34, 5.82, 0.1],
+                                            'C': ['bar', 'baz', 'quux']},
+                            'ANOTHER_SIM_COMP': {'D': [7, 5],
+                                                 'B': [0.775, 0.080],
+                                                 'F': ['xyzzy', 'plud']}}
 
         That is, the keys are the simulation names and the values are dicts
         mapping parameter to a set of values.  Ensembles will be spun
         up for each simulation for each combination of parameters.  E.g.,
-        `a_sim` will be run three times with the parameters of A, B, and C
+        `A_SIM` will be run three times with the parameters of A, B, and C
         being set to 3, 2.34, 'bar' for one of the simulation instances,
-        respectively.
+        respectively.  ANOTHER_SIM_COMP behaves similarly with its
+        respective parameters.
 
         The ensembles will run under `run_dir` within a subdirectory
         uniquely named for each.  The subdirectory will contain an IPS
@@ -2080,27 +2081,80 @@ class ServicesProxy:
         :param template: configuration template file
         :param variables: a dict of variables to pass to the ensemble runs
         :param run_dir: in which to run the ensembles
-        :returns: a dict mapping created subdirs to simulation names and their
-            parameters
+        :param platform_config: is the platform config file for ensembles
+        :returns: a list of dicts mapping created subdirs to simulation names
+            and their parameters
         """
+        def group_into_instances(variables):
+            """ convert component variables into something like this:
+
+             [['ENSEMBLE_0', [['A_SIM_COMP', {'A': 3, 'B': 2.34, 'C': 'bar'}],
+                              ['ANOTHER_SIM_COMP', {'D': 7, 'B': 0.775, 'F': 'xyzzy'}]]],
+              ['ENSEMBLE_1', [['A_SIM_COMP', {'A': 2, 'B': 5.82, 'C': 'baz'}],
+                              ['ANOTHER_SIM_COMP', {'D': 5, 'B': 0.08, 'F': 'plud'}]]],
+              ['ENSEMBLE_2', [['A_SIM_COMP', {'A': 4, 'B': 0.1, 'C': 'quux'}],
+                              ['ANOTHER_SIM_COMP', {'D': 9, 'B': 29.2, 'F': 'thud'}]]]]
+
+               ENSEMBLE_n corresponds to a specific ensemble instance and will
+               be used for a unique subdir name.  That, in turn, references a
+               list of lists where each list element is a component that, in
+               turn, has a dict mapping component variables to values that will
+               then be later used to flesh out a config file from a config
+               template file.
+             """
+            # Transpose the data for each simulation component; essentially
+            # convert the list of variable values into corresponding dicts
+            # mapping the variables to specific values.  Sorta like a
+            # column-wise to row-wise transposition.
+            transposed = {key: [dict(zip(inner.keys(), values)) for values in
+                                zip(*inner.values())] for key, inner in
+                    variables.items()}
+
+            # Build the final structure where each instance is named
+            # ENSEMBLE_n
+            result = [[f"ENSEMBLE_{i}", [[sim_name, sim_data] for
+                                         sim_name, sim_data_list in
+                                         transposed.items() for sim_data in
+                                         [sim_data_list[i]]]] for i in
+                      range(len(next(iter(transposed.values()))))]
+
+            return result
+
+
         self.debug(f'In run_ensemble')
         print(f'In run_ensemble')
 
         template_config = ConfigObj(template)
 
-        # Track the simulation names and their parameters to their respective
-        # subdirectory in this dict.  That way the user can find the subdir
-        # that corresponds to a specific simulation and set of parameters.
-        # Alternatively, they can grind through the subdirs and look at the
-        # instantiated templates there.
-        mapping = {}
+
+        # Let's first "flatten" the hierarchical variables dict into a list of
+        # lists of dicts, where the top-vel of which contains the ensemble instance name and associated parameters.
+        instances = group_into_instances(variables)
 
         # For each simulation
-        for simulation in variables.keys():
-            pass
+        for instance in instances:
+            # Create the subdir based on `path_dir` and the ensemble ID, which
+            # is stored as the first list element in `instance`
+            working_dir = run_dir / instance[0]
+            working_dir.mkdir(parents=True, exist_ok=True)
+
+            # Make a bespoke config file for this simulation instance based
+            # on the template. This entails changing the simulation name to
+            # "DRIVER" so IPS knows what component to run; it also means
+            # substituting all the "?" variables in the template with the
+            # corresponding values found in `variables`.
+            pass # TODO
+
+            # Submit a task to run the simulation instance, which is another
+            # IPS run pointed to that config file.
+            # TODO Use framework launch task
+            pass # TODO
 
 
-        return mapping
+        # TODO wait for all tasks to complete
+
+
+        return instances
 
 
 class TaskPool:
