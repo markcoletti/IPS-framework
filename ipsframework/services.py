@@ -2088,14 +2088,14 @@ class ServicesProxy:
         def group_into_instances(variables):
             """ convert component variables into something like this:
 
-             [['ENSEMBLE_0', [['A_SIM_COMP', {'A': 3, 'B': 2.34, 'C': 'bar'}],
+             [['INSTANCE_0', [['A_SIM_COMP', {'A': 3, 'B': 2.34, 'C': 'bar'}],
                               ['ANOTHER_SIM_COMP', {'D': 7, 'B': 0.775, 'F': 'xyzzy'}]]],
-              ['ENSEMBLE_1', [['A_SIM_COMP', {'A': 2, 'B': 5.82, 'C': 'baz'}],
+              ['INSTANCE_1', [['A_SIM_COMP', {'A': 2, 'B': 5.82, 'C': 'baz'}],
                               ['ANOTHER_SIM_COMP', {'D': 5, 'B': 0.08, 'F': 'plud'}]]],
-              ['ENSEMBLE_2', [['A_SIM_COMP', {'A': 4, 'B': 0.1, 'C': 'quux'}],
+              ['INSTANCE_2', [['A_SIM_COMP', {'A': 4, 'B': 0.1, 'C': 'quux'}],
                               ['ANOTHER_SIM_COMP', {'D': 9, 'B': 29.2, 'F': 'thud'}]]]]
 
-               ENSEMBLE_n corresponds to a specific ensemble instance and will
+               INSTANCE_n corresponds to a specific ensemble instance and will
                be used for a unique subdir name.  That, in turn, references a
                list of lists where each list element is a component that, in
                turn, has a dict mapping component variables to values that will
@@ -2111,8 +2111,8 @@ class ServicesProxy:
                     variables.items()}
 
             # Build the final structure where each instance is named
-            # ENSEMBLE_n
-            result = [[f"ENSEMBLE_{i}", [[sim_name, sim_data] for
+            # INSTANCE_n
+            result = [[f"INSTANCE_{i}", [[sim_name, sim_data] for
                                          sim_name, sim_data_list in
                                          transposed.items() for sim_data in
                                          [sim_data_list[i]]]] for i in
@@ -2121,17 +2121,33 @@ class ServicesProxy:
             return result
 
 
+        def create_config_file(template, working_dir, variables):
+            """ Create an IPS config file for an ensemble instance
+
+            :param template: from which to derive the config file
+            :param working_dir: in which to put the config file
+            :param variables: component parameters that need to be plugged
+                into the template
+            :returns: None
+            """
+            # We need to plug in the variables, so we need to find the section
+            # for a each component, and then find the corresponding variables
+            # to then assign the associated value.
+            pass
+
+
         self.debug(f'In run_ensemble')
         print(f'In run_ensemble')
 
+        # Grab the IPS config template to be used for all ensemble instances
         template_config = ConfigObj(template)
 
-
-        # Let's first "flatten" the hierarchical variables dict into a list of
-        # lists of dicts, where the top-vel of which contains the ensemble instance name and associated parameters.
+        # Let's first "flatten" the hierarchical variables dict into a list
+        # of lists of dicts, where the top-vel of which contains the ensemble
+        # instance name and associated parameters.
         instances = group_into_instances(variables)
 
-        # For each simulation
+        # For each coupled simulation instance
         for instance in instances:
             # Create the subdir based on `path_dir` and the ensemble ID, which
             # is stored as the first list element in `instance`
@@ -2139,11 +2155,14 @@ class ServicesProxy:
             working_dir.mkdir(parents=True, exist_ok=True)
 
             # Make a bespoke config file for this simulation instance based
-            # on the template. This entails changing the simulation name to
-            # "DRIVER" so IPS knows what component to run; it also means
-            # substituting all the "?" variables in the template with the
-            # corresponding values found in `variables`.
-            pass # TODO
+            # on the template. This means substituting all the "?" variables
+            # in the template with the corresponding values found in
+            # `variables`. The second `instance` list element contains the
+            # variables that need to be substituted into the template.  We
+            # copy the template because we will want to start fresh with each
+            # instance, particularly because part of the error checking is to
+            # ensure that all the variables have been assigned.
+            create_config_file(template_config.copy(), working_dir, instance[1])
 
             # Submit a task to run the simulation instance, which is another
             # IPS run pointed to that config file.
