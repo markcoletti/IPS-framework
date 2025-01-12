@@ -51,14 +51,9 @@ class ensemble_driver(Component):
         # 'another_sim_comp', that correspond to two different coupled
         # simulations.  We chose two components to demonstrate that the same
         # variable, in this case 'B', can have different values for different
-        # components. Moreover, this example shows that the different
-        # components needn't have the same number of variable values,
-        # but those within each component there should be the same number.
-        # E.g., 'a_sim_comp' has 3 values for 'A', 'B', and 'C', while
-        # 'another_sim_comp' has 2 values for 'D', 'B', and 'F'.
-        # 'a_sim_comp' and 'another_sim_comp' are the names of the config
-        # sections in the template file so we know where to look for
-        # variable substitutions.
+        # components. 'a_sim_comp' and 'another_sim_comp' are the names of
+        # the config sections in the template file so we know where to look
+        # for variable substitutions.
         variables = {'a_sim_comp': {'A': [3, 2, 4],
                                     'B': [2.34, 5.82, 0.1],
                                     'C': ['bar', 'baz', 'quux']},
@@ -67,7 +62,7 @@ class ensemble_driver(Component):
                                           'F': ['xyzzy', 'plud', 'thud']}}
 
         # Spins up N tasks, in this case three, each with a different set of
-        # variable values. `mapping` is a dict that maps the specific
+        # variable values. `mapping` is a data struct that reports the specific
         # simulation to a given run directory so that the user can easily
         # find the output for a specific run.
         mapping = self.services.run_ensemble(template,
