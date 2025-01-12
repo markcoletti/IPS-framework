@@ -2058,10 +2058,10 @@ class ServicesProxy:
 
         `variables` is a nested dict that looks like this:
 
-                variables = {'A_SIM_COMP': {'A': [3, 2, 4],
+                variables = {'a_sim_comp': {'A': [3, 2, 4],
                                             'B': [2.34, 5.82, 0.1],
                                             'C': ['bar', 'baz', 'quux']},
-                            'ANOTHER_SIM_COMP': {'D': [7, 5],
+                            'another_sim_comp': {'D': [7, 5],
                                                  'B': [0.775, 0.080],
                                                  'F': ['xyzzy', 'plud']}}
 
@@ -2070,7 +2070,7 @@ class ServicesProxy:
         up for each simulation for each combination of parameters.  E.g.,
         `A_SIM` will be run three times with the parameters of A, B, and C
         being set to 3, 2.34, 'bar' for one of the simulation instances,
-        respectively.  ANOTHER_SIM_COMP behaves similarly with its
+        respectively.  another_sim_comp behaves similarly with its
         respective parameters.
 
         The ensembles will run under `run_dir` within a subdirectory
@@ -2088,12 +2088,12 @@ class ServicesProxy:
         def group_into_instances(variables):
             """ convert component variables into something like this:
 
-             [['INSTANCE_0', [['A_SIM_COMP', {'A': 3, 'B': 2.34, 'C': 'bar'}],
-                              ['ANOTHER_SIM_COMP', {'D': 7, 'B': 0.775, 'F': 'xyzzy'}]]],
-              ['INSTANCE_1', [['A_SIM_COMP', {'A': 2, 'B': 5.82, 'C': 'baz'}],
-                              ['ANOTHER_SIM_COMP', {'D': 5, 'B': 0.08, 'F': 'plud'}]]],
-              ['INSTANCE_2', [['A_SIM_COMP', {'A': 4, 'B': 0.1, 'C': 'quux'}],
-                              ['ANOTHER_SIM_COMP', {'D': 9, 'B': 29.2, 'F': 'thud'}]]]]
+             [['INSTANCE_0', [['a_sim_comp', {'A': 3, 'B': 2.34, 'C': 'bar'}],
+                              ['another_sim_comp', {'D': 7, 'B': 0.775, 'F': 'xyzzy'}]]],
+              ['INSTANCE_1', [['a_sim_comp', {'A': 2, 'B': 5.82, 'C': 'baz'}],
+                              ['another_sim_comp', {'D': 5, 'B': 0.08, 'F': 'plud'}]]],
+              ['INSTANCE_2', [['a_sim_comp', {'A': 4, 'B': 0.1, 'C': 'quux'}],
+                              ['another_sim_comp', {'D': 9, 'B': 29.2, 'F': 'thud'}]]]]
 
                INSTANCE_n corresponds to a specific ensemble instance and will
                be used for a unique subdir name.  That, in turn, references a
@@ -2124,7 +2124,7 @@ class ServicesProxy:
         def create_config_file(template, working_dir, variables):
             """ Create an IPS config file for an ensemble instance
 
-            :param template: from which to derive the config file
+            :param template: ConfigObj from which to derive the config file
             :param working_dir: in which to put the config file
             :param variables: component parameters that need to be plugged
                 into the template
@@ -2133,10 +2133,16 @@ class ServicesProxy:
             # We need to plug in the variables, so we need to find the section
             # for a each component, and then find the corresponding variables
             # to then assign the associated value.
-            pass
+            for component in variables[0]:
+                print(f'Substituting for {component}')
+                for variable in variables[1].keys():
+                    # Substitute the individual variables for this component
+                    template[component][variable] = variables[1][variable]
+            template.write(working_dir / "instance.config")
 
 
-        self.debug(f'In run_ensemble')
+
+        self.info(f'In run_ensemble')
         print(f'In run_ensemble')
 
         # Grab the IPS config template to be used for all ensemble instances
