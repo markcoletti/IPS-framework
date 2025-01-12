@@ -7,6 +7,9 @@
 """
 from pathlib import Path
 
+from rich.pretty import pprint
+
+
 from ipsframework import Component
 
 
@@ -26,10 +29,17 @@ class ensemble_driver(Component):
         # all the ensembles.  You don't have to use ENSEMBLE_DIR. You can
         # even hardcode the path here.  Whatever.
         run_dir = Path(self.services.get_config_param('ENSEMBLE_DIR'))
-        print(f'Running ensemble in {run_dir}')
+        self.services.info(f'Running ensemble in {run_dir}')
 
-        template = self.config['TEMPLATE']
-        print(f'Using template {template}')
+        if not run_dir.exists():
+            self.services.info(f'Creating {run_dir}')
+            run_dir.mkdir(parents=True)
+
+        template = Path(self.config['TEMPLATE'])
+        self.services.info(f'Using template config file {template}')
+
+        if not template.exists():
+            raise RuntimeError(f'{template} config template file does not exist')
 
         # PLATFORM_CONFIG_FILE is a variable that points to the platform
         # config file used by the ensembles.  This could be the same
@@ -56,16 +66,16 @@ class ensemble_driver(Component):
                                           'B': [0.775, 0.080, 29.2],
                                           'F': ['xyzzy', 'plud', 'thud']}}
 
-        # Spins up N tasks, in this case 5 (3 for a_sim and 2 for blue),
-        # each with a different set of variable values. `mapping` is a dict
-        # that maps the specific simulation to a given run directory so that
-        # the user can easily find the output for a specific run.
+        # Spins up N tasks, in this case three, each with a different set of
+        # variable values. `mapping` is a dict that maps the specific
+        # simulation to a given run directory so that the user can easily
+        # find the output for a specific run.
         mapping = self.services.run_ensemble(template,
                                              variables,
                                              run_dir,
                                              platform_config)
 
-        print(f'Mapping of dirs to parameters: {mapping!s}')
+        self.services.info(f'Mapping of dirs to parameters: {mapping!s}')
 
 
     def finalize(self, timeStamp=0.0):

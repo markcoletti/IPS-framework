@@ -18,11 +18,23 @@ import json
 import weakref
 from collections import namedtuple
 from operator import itemgetter
+
+from copy import deepcopy
+
 from configobj import ConfigObj
 from .taskManager import TaskInit
 from . import messages, ipsutil
 from .cca_es_spec import initialize_event_service
 from .ips_es_spec import eventManager
+
+import toolz
+from rich import print
+from rich import pretty
+pretty.install()
+from rich.pretty import pprint
+
+from rich.console import Console
+console = Console()
 
 
 RunningTask = namedtuple("RunningTask", ["process", "start_time", "timeout", "nproc", "cores_allocated", "command", "binary", "args"])
@@ -2133,23 +2145,27 @@ class ServicesProxy:
             # We need to plug in the variables, so we need to find the section
             # for a each component, and then find the corresponding variables
             # to then assign the associated value.
-            for component in variables[0]:
-                print(f'Substituting for {component}')
-                for variable in variables[1].keys():
+
+            for component in variables:
+                self.debug(f'Substituting for {component[0]}')
+                for variable in component[1].keys():
                     # Substitute the individual variables for this component
-                    template[component][variable] = variables[1][variable]
-            template.write(working_dir / "instance.config")
+                    self.debug(f'Assigning {component[1][variable]} to {variable}')
+                    template[component[0]][variable] = component[1][variable]
+
+            template.filename = working_dir / "instance.config"
+            template.write()
 
 
 
-        self.info(f'In run_ensemble')
-        print(f'In run_ensemble')
+        self.debug(f'In run_ensemble')
 
-        # Grab the IPS config template to be used for all ensemble instances
-        template_config = ConfigObj(template)
+        # Grab the IPS config template to be used for all ensemble instances;
+        # str to convert from pathlib.Path
+        template_config = ConfigObj(str(template))
 
         # Let's first "flatten" the hierarchical variables dict into a list
-        # of lists of dicts, where the top-vel of which contains the ensemble
+        # of lists of dicts, where the top-level of which contains the ensemble
         # instance name and associated parameters.
         instances = group_into_instances(variables)
 
@@ -2168,7 +2184,7 @@ class ServicesProxy:
             # copy the template because we will want to start fresh with each
             # instance, particularly because part of the error checking is to
             # ensure that all the variables have been assigned.
-            create_config_file(template_config.copy(), working_dir, instance[1])
+            create_config_file(deepcopy(template_config), working_dir, instance[1])
 
             # Submit a task to run the simulation instance, which is another
             # IPS run pointed to that config file.
