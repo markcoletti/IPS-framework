@@ -27,15 +27,6 @@ from . import messages, ipsutil
 from .cca_es_spec import initialize_event_service
 from .ips_es_spec import eventManager
 
-import toolz
-from rich import print
-from rich import pretty
-pretty.install()
-from rich.pretty import pprint
-
-from rich.console import Console
-console = Console()
-
 
 RunningTask = namedtuple("RunningTask", ["process", "start_time", "timeout", "nproc", "cores_allocated", "command", "binary", "args"])
 
