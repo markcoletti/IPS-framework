@@ -2149,7 +2149,7 @@ class ServicesProxy:
 
 
 
-        self.debug(f'In run_ensemble')
+        self.debug(f'Preparing to run ensembles in {run_dir}')
 
         # Grab the IPS config template to be used for all ensemble instances;
         # str to convert from pathlib.Path
@@ -2185,6 +2185,7 @@ class ServicesProxy:
 
         # TODO wait for all tasks to complete
 
+        self.info('All ensembles have finished.')
 
         return instances
 
