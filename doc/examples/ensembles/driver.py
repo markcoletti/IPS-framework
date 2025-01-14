@@ -62,9 +62,9 @@ class ensemble_driver(Component):
                                           'F': ['xyzzy', 'plud', 'thud']}}
 
         # Spins up N tasks, in this case three, each with a different set of
-        # variable values. `mapping` is a data struct that reports the specific
-        # simulation to a given run directory so that the user can easily
-        # find the output for a specific run.
+        # variable values. `mapping` is a data struct that associates the
+        # specific simulation to a given run directory so that the user can
+        # easily find output for a specific run.
         mapping = self.services.run_ensemble(template,
                                              variables,
                                              run_dir,
