@@ -2071,7 +2071,7 @@ class ServicesProxy:
         That is, the keys are the simulation names and the values are dicts
         mapping parameter to a set of values.  Ensembles will be spun
         up for each simulation for each combination of parameters.  E.g.,
-        `A_SIM` will be run three times with the parameters of A, B, and C
+        `a_sim_comp` will be run three times with the parameters of A, B, and C
         being set to 3, 2.34, 'bar' for one of the simulation instances,
         respectively.  another_sim_comp behaves similarly with its
         respective parameters.
