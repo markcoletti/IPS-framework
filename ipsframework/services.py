@@ -2196,7 +2196,7 @@ class ServicesProxy:
 
         # wait for all tasks to complete
         self.info(f'Waiting for all ensembles to finish')
-        self.wait_call_list(task_ids)
+        self.wait_tasklist(task_ids)
         self.info('All ensembles have finished.')
 
         return instances
