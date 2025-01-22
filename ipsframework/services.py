@@ -2184,7 +2184,8 @@ class ServicesProxy:
             # TODO Use framework launch task
             args = f'--simulation={working_dir / "instance.config"} --platform_config={platform_config}'
             task_id = self.launch_task(1, working_dir, 'ips.py',
-                                                args)
+                                                args,
+                                       block=False)
             task_ids.append(task_id)
 
 
