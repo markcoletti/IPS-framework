@@ -13,8 +13,4 @@ class another_sim_comp(Component):
         print('Hello from another_sim_comp')
 
         # Echo the parameters we're expecting, D, B, and F
-        # D = self.services.get_config_param('D')
-        # B = self.services.get_config_param('B')
-        # F = self.services.get_config_param('F')
-
-        print(f'a_sim_comp parameters: D={self.D}, B={self.B}, F={self.F}')
+        print(f'another_sim_comp parameters: D={self.D}, B={self.B}, F={self.F}')

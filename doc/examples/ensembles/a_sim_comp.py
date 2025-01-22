@@ -13,8 +13,4 @@ class a_sim_comp(Component):
         print('Hello from a_sim_comp')
 
         # Echo the parameters we're expecting, A, B, and C
-        # A = self.services.get_config_param('A')
-        # B = self.services.get_config_param('B')
-        # C = self.services.get_config_param('C')
-
         print(f'a_sim_comp parameters: A={self.A}, B={self.B}, C={self.C}')
