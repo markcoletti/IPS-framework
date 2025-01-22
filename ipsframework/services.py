@@ -2160,6 +2160,8 @@ class ServicesProxy:
         # instance name and associated parameters.
         instances = group_into_instances(variables)
 
+        task_ids = [] # for submitted tasks
+
         # For each coupled simulation instance
         for instance in instances:
             # Create the subdir based on `path_dir` and the ensemble ID, which
@@ -2180,11 +2182,14 @@ class ServicesProxy:
             # Submit a task to run the simulation instance, which is another
             # IPS run pointed to that config file.
             # TODO Use framework launch task
-            pass # TODO
+            args = f'--simulation={working_dir / "instance.config"} --platform_config={platform_config}'
+            task_id = self.launch_task(1, working_dir, 'ips.py',
+                                                args)
+            task_ids.append(task_id)
 
 
-        # TODO wait for all tasks to complete
-
+        # wait for all tasks to complete
+        self.wait_call_list(task_ids)
         self.info('All ensembles have finished.')
 
         return instances
