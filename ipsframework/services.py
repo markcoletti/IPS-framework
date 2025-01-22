@@ -2169,6 +2169,9 @@ class ServicesProxy:
             working_dir = run_dir / instance[0]
             working_dir.mkdir(parents=True, exist_ok=True)
 
+            # Local log file for this ensemble instance
+            log_file = working_dir / f'{instance[0]}.log'
+
             # Make a bespoke config file for this simulation instance based
             # on the template. This means substituting all the "?" variables
             # in the template with the corresponding values found in
@@ -2182,7 +2185,7 @@ class ServicesProxy:
             # Submit a task to run the simulation instance, which is another
             # IPS run pointed to that config file.
             # TODO Use framework launch task
-            args = f'--simulation={working_dir / "instance.config"} --platform_config={platform_config}'
+            args = f'--simulation={working_dir / "instance.config"} --log={log_file} --platform_config={platform_config}'
             task_id = self.launch_task(1, working_dir, 'ips.py',
                                                 args,
                                        block=False)
