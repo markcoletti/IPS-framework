@@ -2186,7 +2186,6 @@ class ServicesProxy:
 
             # Submit a task to run the simulation instance, which is another
             # IPS run pointed to that config file.
-            # TODO Use framework launch task
             args = (f'--simulation={working_dir / "instance.config"} '
                     f'--log={log_file} --platform={platform_config}')
             task_id = self.launch_task(1, working_dir, 'ips.py',
