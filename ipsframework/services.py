@@ -2164,6 +2164,8 @@ class ServicesProxy:
 
         # For each coupled simulation instance
         for instance in instances:
+            self.info(f'Running ensemble instance {instance[0]}')
+
             # Create the subdir based on `path_dir` and the ensemble ID, which
             # is stored as the first list element in `instance`
             working_dir = run_dir / instance[0]
@@ -2194,6 +2196,7 @@ class ServicesProxy:
 
 
         # wait for all tasks to complete
+        self.info(f'Waiting for all ensembles to finish')
         self.wait_call_list(task_ids)
         self.info('All ensembles have finished.')
 
