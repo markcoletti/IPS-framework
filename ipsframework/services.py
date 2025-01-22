@@ -2064,9 +2064,9 @@ class ServicesProxy:
                 variables = {'a_sim_comp': {'A': [3, 2, 4],
                                             'B': [2.34, 5.82, 0.1],
                                             'C': ['bar', 'baz', 'quux']},
-                            'another_sim_comp': {'D': [7, 5],
-                                                 'B': [0.775, 0.080],
-                                                 'F': ['xyzzy', 'plud']}}
+                            'another_sim_comp': {'D': [7, 5, 9],
+                                                 'B': [0.775, 0.080, 29.2],
+                                                 'F': ['xyzzy', 'plud', 'thud']}}
 
         That is, the keys are the simulation names and the values are dicts
         mapping parameter to a set of values.  Ensembles will be spun
