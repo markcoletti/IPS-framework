@@ -45,6 +45,7 @@ class ensemble_driver(Component):
         # config file used by the ensembles.  This could be the same
         # platform config file used for this driver, but it doesn't have to be.
         platform_config = self.config['PLATFORM_CONFIG_FILE']
+        self.services.info(f'Using platform config file {platform_config}')
 
         # Specifies different sets of variable values for concurrent ensemble
         # runs for two different components, 'a_sim_comp' and
