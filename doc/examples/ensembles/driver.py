@@ -7,9 +7,6 @@
 """
 from pathlib import Path
 
-from rich.pretty import pprint
-
-
 from ipsframework import Component
 
 

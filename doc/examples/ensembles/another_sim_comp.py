@@ -3,7 +3,7 @@
 from ipsframework import Component
 
 
-class a_sim_comp(Component):
+class another_sim_comp(Component):
     def __init__(self, services, config):
         super().__init__(services, config)
         print('Created %s' % (self.__class__))
@@ -13,8 +13,8 @@ class a_sim_comp(Component):
         print('Hello from another_sim_comp')
 
         # Echo the parameters we're expecting, D, B, and F
-        D = self.services.get_config_param('D')
-        B = self.services.get_config_param('B')
-        F = self.services.get_config_param('F')
+        # D = self.services.get_config_param('D')
+        # B = self.services.get_config_param('B')
+        # F = self.services.get_config_param('F')
 
-        print(f'a_sim_comp parameters: D={D}, B={B}, F={F}')
+        print(f'a_sim_comp parameters: D={self.D}, B={self.B}, F={self.F}')
