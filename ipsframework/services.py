@@ -2149,6 +2149,7 @@ class ServicesProxy:
                     self.debug(f'Assigning {component[1][variable]} to {variable}')
                     template[component[0]][variable] = component[1][variable]
 
+            template['LOG_FILE'] = working_dir / Path(prefix + "_run.log")
             template.filename = working_dir / Path(prefix + ".config")
             template.write()
 
