@@ -82,3 +82,7 @@ dask-worker-space/
 # Generated data
 *.csv
 *.png
+
+# Project specific
+simulation_log/
+simulation_setup/
