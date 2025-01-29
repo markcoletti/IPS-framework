@@ -34,7 +34,7 @@ class ensemble_driver(Component):
         # is the arbitrary instance ID.
         prefix = self.services.get_config_param('ENSEMBLE_PREFIX',
                                                 silent=True)
-        if not prefix or prefix == '' or prefix = {}:
+        if not prefix or prefix == '' or prefix == {}:
             self.services.info('No ensemble instance prefix specified. Using '
                                'default of INSTANCE_.')
             prefix = "INSTANCE_"

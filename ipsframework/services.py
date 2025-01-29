@@ -18,6 +18,7 @@ import json
 import weakref
 from collections import namedtuple
 from operator import itemgetter
+from pathlib import Path
 
 from copy import deepcopy
 
@@ -2118,7 +2119,7 @@ class ServicesProxy:
 
             # Build the final structure where each instance is named
             # INSTANCE_n
-            result = [[f"{prefix}_{i}", [[sim_name, sim_data] for
+            result = [[f"{prefix}{i}", [[sim_name, sim_data] for
                                          sim_name, sim_data_list in
                                          transposed.items() for sim_data in
                                          [sim_data_list[i]]]] for i in
@@ -2127,13 +2128,14 @@ class ServicesProxy:
             return result
 
 
-        def create_config_file(template, working_dir, variables):
+        def create_config_file(template, working_dir, variables, prefix):
             """ Create an IPS config file for an ensemble instance
 
             :param template: ConfigObj from which to derive the config file
             :param working_dir: in which to put the config file
             :param variables: component parameters that need to be plugged
                 into the template
+            :param prefix: instance string prefix for file names
             :returns: None
             """
             # We need to plug in the variables, so we need to find the section
@@ -2147,7 +2149,7 @@ class ServicesProxy:
                     self.debug(f'Assigning {component[1][variable]} to {variable}')
                     template[component[0]][variable] = component[1][variable]
 
-            template.filename = working_dir / prefix + ".config"
+            template.filename = working_dir / Path(prefix + ".config")
             template.write()
 
 
@@ -2185,11 +2187,12 @@ class ServicesProxy:
             # copy the template because we will want to start fresh with each
             # instance, particularly because part of the error checking is to
             # ensure that all the variables have been assigned.
-            create_config_file(deepcopy(template_config), working_dir, instance[1])
+            create_config_file(deepcopy(template_config), working_dir,
+                               instance[1], instance[0])
 
             # Submit a task to run the simulation instance, which is another
             # IPS run pointed to that config file.
-            args = (f'--simulation={working_dir / prefix + ".config"} '
+            args = (f'--simulation={working_dir / Path(instance[0] + ".config")} '
                     f'--log={log_file} --platform={platform_config}')
             task_id = self.launch_task(1, working_dir, 'ips.py',
                                                 args,
