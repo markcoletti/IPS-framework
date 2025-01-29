@@ -86,3 +86,4 @@ dask-worker-space/
 # Project specific
 simulation_log/
 simulation_setup/
+run.log
