@@ -28,6 +28,19 @@ class ensemble_driver(Component):
         run_dir = Path(self.services.get_config_param('ENSEMBLE_DIR'))
         self.services.info(f'Running ensemble in {run_dir}')
 
+        # ENSEMBLE_PREFIX is an optional config variable for specifying
+        # a string to prepend to the ensemble run directories and generated
+        # files.  If not specified, the default is 'INSTANCE_n' where n is
+        # is the arbitrary instance ID.
+        prefix = self.services.get_config_param('ENSEMBLE_PREFIX',
+                                                silent=True)
+        if not prefix or prefix == '' or prefix = {}:
+            self.services.info('No ensemble instance prefix specified. Using '
+                               'default of INSTANCE_.')
+            prefix = "INSTANCE_"
+        else:
+            self.services.info(f'Using ensemble instance prefix {prefix}')
+
         if not run_dir.exists():
             self.services.info(f'Creating {run_dir}')
             run_dir.mkdir(parents=True)
@@ -66,7 +79,8 @@ class ensemble_driver(Component):
         mapping = self.services.run_ensemble(template,
                                              variables,
                                              run_dir,
-                                             platform_config)
+                                             platform_config,
+                                             prefix)
 
         self.services.info(f'Mapping of dirs to parameters: {mapping!s}')
 

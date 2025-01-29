@@ -2056,7 +2056,8 @@ class ServicesProxy:
         return (sim_name, init_comp, driver_comp)
 
 
-    def run_ensemble(self, template, variables, run_dir, platform_config):
+    def run_ensemble(self, template, variables, run_dir, platform_config,
+                     prefix):
         """ Run ensemble of simulations given the template and variables.
 
         `variables` is a nested dict that looks like this:
@@ -2085,20 +2086,22 @@ class ServicesProxy:
         :param variables: a dict of variables to pass to the ensemble runs
         :param run_dir: in which to run the ensembles
         :param platform_config: is the platform config file for ensembles
+        :param prefix: string to prepend to generated instance directory
+            and file names
         :returns: a list of dicts mapping created subdirs to simulation names
             and their parameters
         """
-        def group_into_instances(variables):
+        def group_into_instances(variables, prefix):
             """ convert component variables into something like this:
 
-             [['INSTANCE_0', [['a_sim_comp', {'A': 3, 'B': 2.34, 'C': 'bar'}],
+             [['prefix_0', [['a_sim_comp', {'A': 3, 'B': 2.34, 'C': 'bar'}],
                               ['another_sim_comp', {'D': 7, 'B': 0.775, 'F': 'xyzzy'}]]],
-              ['INSTANCE_1', [['a_sim_comp', {'A': 2, 'B': 5.82, 'C': 'baz'}],
+              ['prefix_1', [['a_sim_comp', {'A': 2, 'B': 5.82, 'C': 'baz'}],
                               ['another_sim_comp', {'D': 5, 'B': 0.08, 'F': 'plud'}]]],
-              ['INSTANCE_2', [['a_sim_comp', {'A': 4, 'B': 0.1, 'C': 'quux'}],
+              ['prefix_2', [['a_sim_comp', {'A': 4, 'B': 0.1, 'C': 'quux'}],
                               ['another_sim_comp', {'D': 9, 'B': 29.2, 'F': 'thud'}]]]]
 
-               INSTANCE_n corresponds to a specific ensemble instance and will
+               prefix_n corresponds to a specific ensemble instance and will
                be used for a unique subdir name.  That, in turn, references a
                list of lists where each list element is a component that, in
                turn, has a dict mapping component variables to values that will
@@ -2115,7 +2118,7 @@ class ServicesProxy:
 
             # Build the final structure where each instance is named
             # INSTANCE_n
-            result = [[f"INSTANCE_{i}", [[sim_name, sim_data] for
+            result = [[f"{prefix}_{i}", [[sim_name, sim_data] for
                                          sim_name, sim_data_list in
                                          transposed.items() for sim_data in
                                          [sim_data_list[i]]]] for i in
@@ -2144,7 +2147,7 @@ class ServicesProxy:
                     self.debug(f'Assigning {component[1][variable]} to {variable}')
                     template[component[0]][variable] = component[1][variable]
 
-            template.filename = working_dir / "instance.config"
+            template.filename = working_dir / prefix + ".config"
             template.write()
 
 
@@ -2158,7 +2161,7 @@ class ServicesProxy:
         # Let's first "flatten" the hierarchical variables dict into a list
         # of lists of dicts, where the top-level of which contains the ensemble
         # instance name and associated parameters.
-        instances = group_into_instances(variables)
+        instances = group_into_instances(variables, prefix)
 
         task_ids = [] # for submitted tasks
 
@@ -2186,7 +2189,7 @@ class ServicesProxy:
 
             # Submit a task to run the simulation instance, which is another
             # IPS run pointed to that config file.
-            args = (f'--simulation={working_dir / "instance.config"} '
+            args = (f'--simulation={working_dir / prefix + ".config"} '
                     f'--log={log_file} --platform={platform_config}')
             task_id = self.launch_task(1, working_dir, 'ips.py',
                                                 args,
