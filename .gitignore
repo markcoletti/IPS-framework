@@ -87,3 +87,4 @@ dask-worker-space/
 simulation_log/
 simulation_setup/
 run.log
+resource_usage
